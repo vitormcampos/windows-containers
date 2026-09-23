@@ -1,25 +1,43 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using WindowsContainers.UI.Models;
+using WindowsContainers.UI.Services.Interfaces;
 
 namespace WindowsContainers.UI.ViewModels;
 
 public sealed partial class SettingsViewModel : ViewModelBase
 {
+    private readonly IAppSettingsStore _settingsStore;
+    private readonly IPowerShellAliasService _aliasService;
+    private readonly IRuntimeInfoService _runtimeInfoService;
     private SettingsSectionViewModel _selectedSection;
-    private string _statusMessage = "Changes are local to this session.";
+    private string _statusMessage = "Settings are stored locally by this application.";
 
-    public SettingsViewModel()
+    public event EventHandler<ApplicationSettings>? SettingsApplied;
+    public ApplicationSettings CurrentSettings { get; private set; } = new();
+
+    public SettingsViewModel(IAppSettingsStore settingsStore, IPowerShellAliasService aliasService, IRuntimeInfoService runtimeInfoService)
     {
-        Sections = new ObservableCollection<SettingsSectionViewModel>
-        {
-            new RuntimeSettingsViewModel(),
-            new SessionSettingsViewModel(),
-            new ContainerDefaultsSettingsViewModel(),
-            new AppearanceSettingsViewModel(),
-        };
-        _selectedSection = Sections[0];
+        _settingsStore = settingsStore;
+        _aliasService = aliasService;
+        _runtimeInfoService = runtimeInfoService;
+        Runtime = new RuntimeSettingsViewModel(runtimeInfoService);
+        Session = new SessionSettingsViewModel();
+        Appearance = new AppearanceSettingsViewModel();
+        PowerShell = new PowerShellIntegrationSettingsViewModel(aliasService);
+        Sections = new ObservableCollection<SettingsSectionViewModel> { Runtime, Session, Appearance, PowerShell };
+        _selectedSection = Runtime;
     }
 
+    public RuntimeSettingsViewModel Runtime { get; }
+    public SessionSettingsViewModel Session { get; }
+    public AppearanceSettingsViewModel Appearance { get; }
+    public PowerShellIntegrationSettingsViewModel PowerShell { get; }
     public ObservableCollection<SettingsSectionViewModel> Sections { get; }
 
     public SettingsSectionViewModel SelectedSection
@@ -34,10 +52,83 @@ public sealed partial class SettingsViewModel : ViewModelBase
         private set => SetProperty(ref _statusMessage, value);
     }
 
-    [RelayCommand]
-    private void Apply()
+    public async Task LoadAsync(CancellationToken cancellationToken = default)
     {
-        StatusMessage = "Changes applied for this session.";
+        try
+        {
+            CurrentSettings = await _settingsStore.LoadAsync(cancellationToken);
+            PowerShell.Load(CurrentSettings.PowerShellAliases);
+            await PowerShell.InspectAsync(CurrentSettings.PowerShellAliases, cancellationToken);
+            ApplySettings(CurrentSettings);
+            await Runtime.RefreshAsync(cancellationToken);
+            StatusMessage = "Application settings loaded.";
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            StatusMessage = "Could not load application settings. Using defaults.";
+        }
+    }
+
+    [RelayCommand]
+    private async Task ApplyAsync()
+    {
+        var validationError = ValidateSelectedSection();
+        if (validationError is not null)
+        {
+            StatusMessage = validationError;
+            return;
+        }
+
+        if (SelectedSection == Runtime)
+        {
+            StatusMessage = "Runtime information is read-only.";
+            return;
+        }
+
+        try
+        {
+            var settings = CurrentSettings;
+            var isPowerShellSection = SelectedSection == PowerShell;
+
+            if (SelectedSection == Session)
+                settings.SessionName = Session.SessionName;
+            else if (SelectedSection == Appearance)
+            {
+                settings.Theme = Appearance.Theme;
+                settings.CompactMode = Appearance.CompactMode;
+                settings.ShowStatusBar = Appearance.ShowStatusBar;
+            }
+            else if (isPowerShellSection)
+                settings.PowerShellAliases = PowerShell.ToModels();
+
+            await _settingsStore.SaveAsync(settings);
+            CurrentSettings = settings;
+            SettingsApplied?.Invoke(this, settings);
+
+            if (!isPowerShellSection)
+            {
+                StatusMessage = "Section settings saved.";
+                return;
+            }
+
+            try
+            {
+                await PowerShell.ApplyAsync();
+                StatusMessage = "PowerShell integration settings saved.";
+            }
+            catch (Exception)
+            {
+                StatusMessage = "PowerShell settings saved, but aliases could not be applied.";
+            }
+        }
+        catch (Exception)
+        {
+            StatusMessage = "Could not save section settings.";
+        }
     }
 
     [RelayCommand]
@@ -46,7 +137,26 @@ public sealed partial class SettingsViewModel : ViewModelBase
         foreach (var section in Sections)
             section.RestoreDefaults();
 
-        StatusMessage = "Default values restored.";
+        StatusMessage = "Default values restored. Apply to save these defaults.";
+    }
+
+    private string? ValidateSelectedSection()
+    {
+        if (SelectedSection == Session && Session.SessionName.Contains(' '))
+            return "Session name cannot contain spaces.";
+
+        if (SelectedSection == PowerShell && PowerShell.HasValidationError)
+            return PowerShell.ValidationError!;
+
+        return null;
+    }
+
+    private void ApplySettings(ApplicationSettings settings)
+    {
+        Session.SessionName = settings.SessionName;
+        Appearance.Theme = settings.Theme;
+        Appearance.CompactMode = settings.CompactMode;
+        Appearance.ShowStatusBar = settings.ShowStatusBar;
     }
 }
 
@@ -63,69 +173,51 @@ public abstract class SettingsSectionViewModel : ViewModelBase
     public abstract void RestoreDefaults();
 }
 
-public sealed class RuntimeSettingsViewModel : SettingsSectionViewModel
+public sealed partial class RuntimeSettingsViewModel : SettingsSectionViewModel
 {
-    public RuntimeSettingsViewModel() : base("wslc runtime", "Configure the native WSL-powered container runtime.") { }
-    public string Status => "Not connected";
-    public string RuntimeVersion => "Not detected";
-    public bool GpuEnabled { get; set; }
-    public bool AutoStartSession { get; set; }
-    public override void RestoreDefaults()
+    private readonly IRuntimeInfoService _runtimeInfoService;
+    [ObservableProperty] private string status = "Checking…";
+    [ObservableProperty] private string runtimeVersion = "Checking…";
+    [ObservableProperty] private string session = "Checking…";
+
+    public RuntimeSettingsViewModel(IRuntimeInfoService runtimeInfoService)
+        : base("WSL Containers runtime", "Information about the native WSLc runtime used by Windows Containers.")
     {
-        GpuEnabled = false; AutoStartSession = false;
-        OnPropertyChanged(nameof(GpuEnabled)); OnPropertyChanged(nameof(AutoStartSession));
+        _runtimeInfoService = runtimeInfoService;
     }
+
+    public async Task RefreshAsync(CancellationToken cancellationToken = default)
+    {
+        var info = await _runtimeInfoService.GetInfoAsync(cancellationToken);
+        Status = info.Status;
+        RuntimeVersion = info.Version;
+        Session = info.Session;
+    }
+
+    public override void RestoreDefaults() { }
 }
 
-public sealed class SessionSettingsViewModel : SettingsSectionViewModel
+public sealed partial class SessionSettingsViewModel : SettingsSectionViewModel
 {
-    public SessionSettingsViewModel() : base("Container session", "Define the resources and storage used by a wslc container session.") { }
-    public string SessionName { get; set; } = "windows-containers";
-    public string StoragePath { get; set; } = "%LOCALAPPDATA%\\WindowsContainers\\sessions";
-    public int CpuCount { get; set; } = 4;
-    public int MemoryMb { get; set; } = 4096;
-    public int TimeoutSeconds { get; set; } = 30;
-    public bool GpuEnabled { get; set; }
-    public string VhdType { get; set; } = "Dynamic";
-    public int VhdSizeGb { get; set; } = 64;
-    public override void RestoreDefaults()
-    {
-        SessionName = "windows-containers"; StoragePath = "%LOCALAPPDATA%\\WindowsContainers\\sessions";
-        CpuCount = 4; MemoryMb = 4096; TimeoutSeconds = 30; GpuEnabled = false; VhdType = "Dynamic"; VhdSizeGb = 64;
-        OnPropertyChanged(nameof(SessionName)); OnPropertyChanged(nameof(StoragePath)); OnPropertyChanged(nameof(CpuCount)); OnPropertyChanged(nameof(MemoryMb));
-        OnPropertyChanged(nameof(TimeoutSeconds)); OnPropertyChanged(nameof(GpuEnabled)); OnPropertyChanged(nameof(VhdType)); OnPropertyChanged(nameof(VhdSizeGb));
-    }
+    [ObservableProperty] private string sessionName = "";
+
+    public SessionSettingsViewModel() : base("WSLc session", "Select the optional wslc session used for container operations.") { }
+
+    public override void RestoreDefaults() => SessionName = "";
 }
 
-public sealed class ContainerDefaultsSettingsViewModel : SettingsSectionViewModel
-{
-    public ContainerDefaultsSettingsViewModel() : base("Container defaults", "Defaults used when creating new containers.") { }
-    public string Image { get; set; } = "ubuntu:24.04";
-    public string NetworkMode { get; set; } = "Bridged";
-    public string HostName { get; set; } = "";
-    public string DomainName { get; set; } = "";
-    public bool AutoRemove { get; set; }
-    public bool Privileged { get; set; }
-    public bool GpuEnabled { get; set; }
-    public string WorkingDirectory { get; set; } = "/workspace";
-    public override void RestoreDefaults()
-    {
-        Image = "ubuntu:24.04"; NetworkMode = "Bridged"; HostName = ""; DomainName = "";
-        AutoRemove = false; Privileged = false; GpuEnabled = false; WorkingDirectory = "/workspace";
-        OnPropertyChanged(nameof(Image)); OnPropertyChanged(nameof(NetworkMode)); OnPropertyChanged(nameof(HostName)); OnPropertyChanged(nameof(DomainName));
-        OnPropertyChanged(nameof(AutoRemove)); OnPropertyChanged(nameof(Privileged)); OnPropertyChanged(nameof(GpuEnabled)); OnPropertyChanged(nameof(WorkingDirectory));
-    }
-}
-
-public sealed class AppearanceSettingsViewModel : SettingsSectionViewModel
+public sealed partial class AppearanceSettingsViewModel : SettingsSectionViewModel
 {
     public AppearanceSettingsViewModel() : base("Appearance", "Adjust how Windows Containers looks and behaves.") { }
-    public string Theme { get; set; } = "System";
-    public bool CompactMode { get; set; }
-    public bool ShowStatusBar { get; set; } = true;
+    public IReadOnlyList<string> Themes { get; } = ["System", "Light", "Dark"];
+    [ObservableProperty] private string theme = "System";
+    [ObservableProperty] private bool compactMode;
+    [ObservableProperty] private bool showStatusBar = true;
+
     public override void RestoreDefaults()
     {
-        Theme = "System"; CompactMode = false; ShowStatusBar = true;
-        OnPropertyChanged(nameof(Theme)); OnPropertyChanged(nameof(CompactMode)); OnPropertyChanged(nameof(ShowStatusBar));
+        Theme = "System";
+        CompactMode = false;
+        ShowStatusBar = true;
     }
 }

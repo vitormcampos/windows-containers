@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:WindowsContainers.UI.ViewModels" x:Class="WindowsContainers.UI.Views.Components.Settings.PowerShellIntegrationSection" x:DataType="vm:PowerShellIntegrationSettingsViewModel">
+    <ScrollViewer>
+        <StackPanel Spacing="18" MaxWidth="760">
+            <TextBlock Text="{Binding Title}" Classes="title" />
+            <TextBlock Text="{Binding Description}" Classes="body" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" TextWrapping="Wrap" />
+            <ItemsControl ItemsSource="{Binding Aliases}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PowerShellAliasViewModel">
+                        <Border BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}" BorderThickness="1" Padding="16" Margin="0,4">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+                                    <TextBlock Text="Alias" Classes="metric-label" /><TextBox Grid.Column="1" Text="{Binding Name}" />
+                                    <TextBlock Grid.Row="1" Text="Target command" Classes="metric-label" /><TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Target}" />
+                                    <TextBlock Grid.Row="2" Text="Enabled" Classes="metric-label" /><CheckBox Grid.Row="2" Grid.Column="1" Content="Manage this alias" IsChecked="{Binding Enabled}" />
+                                </Grid>
+                                <Button Content="Remove alias" Command="{Binding $parent[ItemsControl].DataContext.RemoveAliasCommand}" CommandParameter="{Binding}" HorizontalAlignment="Left" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                                    <Border Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" Padding="10">
+                                        <StackPanel Spacing="4"><TextBlock Text="Windows PowerShell 5.1" FontWeight="SemiBold" /><TextBlock Text="{Binding WindowsPowerShellStatus}" /><TextBlock Text="{Binding WindowsPowerShellPath}" Classes="caption" TextWrapping="Wrap" /></StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="1" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" Padding="10">
+                                        <StackPanel Spacing="4"><TextBlock Text="PowerShell 7" FontWeight="SemiBold" /><TextBlock Text="{Binding PowerShellStatus}" /><TextBlock Text="{Binding PowerShellPath}" Classes="caption" TextWrapping="Wrap" /></StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Content="Add alias" Command="{Binding AddAliasCommand}" HorizontalAlignment="Left" />
+            <TextBlock Text="Aliases are written only to the managed sections of each PowerShell profile. Existing conflicting aliases are not overwritten." Classes="caption" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

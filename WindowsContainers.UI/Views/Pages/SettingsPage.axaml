@@ -4,23 +4,38 @@
              x:Class="WindowsContainers.UI.Views.Pages.SettingsPage"
              x:DataType="vm:SettingsViewModel">
     <Grid ColumnDefinitions="220,*" Margin="32">
-        <Border Grid.Column="0" BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}" BorderThickness="0,0,1,0" Padding="0,0,24,0">
+        <Border Grid.Column="0"
+                BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                BorderThickness="0,0,1,0"
+                Padding="0,0,24,0">
             <StackPanel Spacing="4">
                 <TextBlock Text="Settings" Classes="title" Margin="0,0,0,4" />
-                <TextBlock Text="Configure the native container runtime and application experience." Classes="body" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" TextWrapping="Wrap" Margin="0,0,0,20" />
-                <ListBox ItemsSource="{Binding Sections}" SelectedItem="{Binding SelectedSection}" Background="Transparent" BorderThickness="0">
+                <TextBlock Text="Configure the Windows Containers experience and native WSLc integration."
+                           Classes="body"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,20" />
+                <ListBox ItemsSource="{Binding Sections}"
+                         SelectedItem="{Binding SelectedSection}"
+                         Background="Transparent"
+                         BorderThickness="0">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:SettingsSectionViewModel">
-                            <TextBlock Text="{Binding Title}" Padding="8,10" />
+                            <TextBlock Text="{Binding Title}" Padding="8,10" TextWrapping="Wrap" />
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
             </StackPanel>
         </Border>
         <Grid Grid.Column="1" RowDefinitions="*,Auto" Margin="32,0,0,0">
-            <ContentControl Content="{Binding SelectedSection}" />
+            <Border Grid.Row="0" BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}" BorderThickness="1" Padding="24">
+                <ContentControl Content="{Binding SelectedSection}" />
+            </Border>
             <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,24,0,0">
-                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                 <Button Grid.Column="1" Content="Restore defaults" Command="{Binding RestoreDefaultsCommand}" Margin="8,0" />
                 <Button Grid.Column="2" Content="Apply" Command="{Binding ApplyCommand}" />
             </Grid>
