@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WindowsContainers.UI.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WindowsContainers.UI.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+    <StackPanel Margin="48,48" Spacing="12" VerticalAlignment="Top" HorizontalAlignment="Left" MaxWidth="560">
+        <TextBlock Text="Dashboard"
+                   Classes="caption"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        <TextBlock Text="{Binding Title}"
+                   Classes="title"
+                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        <TextBlock Text="{Binding Description}"
+                   Classes="body"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" Spacing="40" Margin="0,20,0,0">
+            <StackPanel Spacing="2">
+                <TextBlock Text="WSL" Classes="metric-label" />
+                <TextBlock Text="{Binding WslStatus}" Classes="metric-value" />
+            </StackPanel>
+            <StackPanel Spacing="2">
+                <TextBlock Text="Containers" Classes="metric-label" />
+                <TextBlock Text="{Binding ContainersSummary}" Classes="metric-value" />
+            </StackPanel>
+            <StackPanel Spacing="2">
+                <TextBlock Text="Images" Classes="metric-label" />
+                <TextBlock Text="{Binding ImagesSummary}" Classes="metric-value" />
+            </StackPanel>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

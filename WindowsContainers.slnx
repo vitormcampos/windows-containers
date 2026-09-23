@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="AGENTS.md" />
+  </Folder>
+  <Project Path="WindowsContainers.UI/WindowsContainers.UI.csproj" />
+</Solution>

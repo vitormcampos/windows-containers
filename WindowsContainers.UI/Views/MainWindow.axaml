@@ -1,0 +1,104 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:WindowsContainers.UI.ViewModels"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="700"
+        x:Class="WindowsContainers.UI.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="WindowsContainers"
+        Width="1080" Height="700"
+        MinWidth="840" MinHeight="560">
+
+    <Window.Styles>
+        <!-- Sidebar navigation items -->
+        <Style Selector="StackPanel.nav-item">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="Spacing" Value="12" />
+        </Style>
+        <Style Selector="TextBlock.nav-text">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ic|FluentIcon.nav-icon">
+            <Setter Property="IconSize" Value="Size20" />
+            <Setter Property="IconVariant" Value="Regular" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        </Style>
+        <Style Selector="ListBoxItem:selected ic|FluentIcon.nav-icon">
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}" />
+        </Style>
+        <Style Selector="ListBox#NavList ListBoxItem">
+            <Setter Property="Padding" Value="24,10" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="MinHeight" Value="40" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="*,Auto">
+        <Grid ColumnDefinitions="240,*">
+            <!-- Sidebar (static, no navigation yet) -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                    BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="WindowsContainers"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                               Margin="24,28,24,24" />
+                    <ListBox x:Name="NavList"
+                             SelectedIndex="0"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Padding="0">
+                        <ListBoxItem>
+                            <StackPanel Classes="nav-item">
+                                <ic:FluentIcon Classes="nav-icon" Icon="Dashboard" />
+                                <TextBlock Classes="nav-text" Text="Dashboard" />
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <StackPanel Classes="nav-item">
+                                <ic:FluentIcon Classes="nav-icon" Icon="Box" />
+                                <TextBlock Classes="nav-text" Text="Containers" />
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <StackPanel Classes="nav-item">
+                                <ic:FluentIcon Classes="nav-icon" Icon="Image" />
+                                <TextBlock Classes="nav-text" Text="Images" />
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <StackPanel Classes="nav-item">
+                                <ic:FluentIcon Classes="nav-icon" Icon="Settings" />
+                                <TextBlock Classes="nav-text" Text="Settings" />
+                            </StackPanel>
+                        </ListBoxItem>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Content -->
+            <Grid Grid.Column="1"
+                  Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                <ContentControl Content="{Binding Dashboard}" />
+            </Grid>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="24,8">
+            <ContentControl Content="{Binding StatusBar}" />
+        </Border>
+    </Grid>
+</Window>
