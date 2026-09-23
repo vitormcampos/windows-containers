@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WindowsContainers.UI.Views.DashboardView"
+             x:Class="WindowsContainers.UI.Views.Pages.DashboardPage"
              x:DataType="vm:DashboardViewModel">
 
     <StackPanel Margin="48,48" Spacing="12" VerticalAlignment="Top" HorizontalAlignment="Left" MaxWidth="560">
@@ -20,7 +20,7 @@
                    TextWrapping="Wrap" />
         <StackPanel Orientation="Horizontal" Spacing="40" Margin="0,20,0,0">
             <StackPanel Spacing="2">
-                <TextBlock Text="WSL" Classes="metric-label" />
+                <TextBlock Text="wslc runtime" Classes="metric-label" />
                 <TextBlock Text="{Binding WslStatus}" Classes="metric-value" />
             </StackPanel>
             <StackPanel Spacing="2">

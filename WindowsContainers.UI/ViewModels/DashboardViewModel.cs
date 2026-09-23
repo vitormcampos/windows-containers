@@ -11,7 +11,7 @@ public sealed class DashboardViewModel : ViewModelBase
         _environment = environment;
     }
 
-    public string Title => "Welcome to WindowsContainers";
+    public string Title => "Welcome to Windows Containers";
 
     public string Description =>
         "Manage Linux containers running on WSL. This dashboard gives you an at-a-glance view of your environment.";

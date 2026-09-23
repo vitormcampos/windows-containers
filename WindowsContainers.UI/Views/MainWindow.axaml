@@ -8,7 +8,7 @@
         x:Class="WindowsContainers.UI.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="WindowsContainers"
+        Title="Windows Containers"
         Width="1080" Height="700"
         MinWidth="840" MinHeight="560">
 
@@ -47,13 +47,13 @@
                     BorderThickness="0,0,1,0">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top"
-                               Text="WindowsContainers"
+                               Text="Windows Containers"
                                FontSize="18"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
                                Margin="24,28,24,24" />
                     <ListBox x:Name="NavList"
-                             SelectedIndex="0"
+                             SelectedIndex="{Binding SelectedNavigationIndex}"
                              Background="Transparent"
                              BorderThickness="0"
                              Padding="0">
@@ -88,7 +88,7 @@
             <!-- Content -->
             <Grid Grid.Column="1"
                   Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-                <ContentControl Content="{Binding Dashboard}" />
+                <ContentControl Content="{Binding CurrentPage}" />
             </Grid>
         </Grid>
 

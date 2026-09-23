@@ -288,6 +288,26 @@ Keep `.axaml.cs` code-behind minimal.
 
 Prefer MVVM bindings and commands.
 
+## View organization
+
+Separate complete navigable screens from reusable visual elements:
+
+```text
+WindowsContainers.UI/Views/
+├── Pages/
+│   ├── DashboardPage.axaml
+│   ├── ContainersPage.axaml
+│   ├── ImagesPage.axaml
+│   └── SettingsPage.axaml
+│
+└── Components/
+    ├── StatusBar.axaml
+    └── Settings/
+        └── *Section.axaml
+```
+
+`Views/Pages` contains screens reached through the main application navigation. `Views/Components` contains reusable controls and visual sections; components must not own page navigation. Keep matching ViewModels organized under `ViewModels/Pages` and `ViewModels/Components` when those groups are created.
+
 ---
 
 # 10. ViewModels

@@ -4,13 +4,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="32"
-             x:Class="WindowsContainers.UI.Views.StatusBarView"
+             x:Class="WindowsContainers.UI.Views.Components.StatusBar"
              x:DataType="vm:StatusBarViewModel">
 
     <Grid>
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Center">
             <Ellipse Width="8" Height="8" Fill="{DynamicResource StatusSuccessBrush}" />
-            <TextBlock Text="WSL"
+            <TextBlock Text="wslc runtime"
                        Classes="caption"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             <TextBlock Text="{Binding WslStatus}"
