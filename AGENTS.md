@@ -308,6 +308,12 @@ WindowsContainers.UI/Views/
 
 `Views/Pages` contains screens reached through the main application navigation. `Views/Components` contains reusable controls and visual sections; components must not own page navigation. Keep matching ViewModels organized under `ViewModels/Pages` and `ViewModels/Components` when those groups are created.
 
+## Application settings persistence
+
+SQLite may persist only WindowsContainers-owned preferences and defaults, such as appearance, container defaults, and desired session defaults. Never persist WSL/wslc runtime state, discovered resources, container state, SDK objects, runtime versions, or effective resource values. Runtime information must be queried from the SDK, runtime, or CLI when needed.
+
+PowerShell aliases are application-owned integration preferences. Store their definitions in SQLite, but validate their actual state against both PowerShell profiles on the machine. Cached status must never replace a fresh machine inspection.
+
 ---
 
 # 10. ViewModels
@@ -383,9 +389,11 @@ Example:
 Services/
 │
 ├── Interfaces/
-│   └── IContainerService.cs
+│   ├── IContainerService.cs
+│   ├── IImageService.cs
+│   └── IProviderService.cs
 │
-└── WslContainerService.cs
+└── WslProviderService.cs
 ```
 
 The interface represents application needs.
@@ -415,14 +423,10 @@ public interface IContainerService
 The implementation:
 
 ```text
-WslContainerService
+WslProviderService
 ```
 
-is responsible for interacting with:
-
-```text
-Microsoft.WSL.Containers
-```
+is responsible for interacting with the native wslc SDK/CLI and mapping its results to application models.
 
 ---
 
@@ -437,11 +441,11 @@ Prefer:
 ```text
 ViewModel
      ↓
-IContainerService
+IProviderService
      ↓
-WslContainerService
+WslProviderService
      ↓
-Microsoft.WSL.Containers
+wslc SDK / CLI
 ```
 
 instead of:
@@ -457,9 +461,9 @@ Map infrastructure objects to application models where appropriate.
 For example:
 
 ```text
-Microsoft WSL Container
+wslc SDK / CLI
         ↓
-WslContainerService
+WslProviderService
         ↓
 ContainerInfo
         ↓
