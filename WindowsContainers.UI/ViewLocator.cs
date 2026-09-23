@@ -20,11 +20,12 @@ public class ViewLocator : IDataTemplate
         {
             ["WindowsContainers.UI.ViewModels.DashboardViewModel"] = "WindowsContainers.UI.Views.Pages.DashboardPage",
             ["WindowsContainers.UI.ViewModels.SettingsViewModel"] = "WindowsContainers.UI.Views.Pages.SettingsPage",
+            ["WindowsContainers.UI.ViewModels.ImagesPageViewModel"] = "WindowsContainers.UI.Views.Pages.ImagesPage",
             ["WindowsContainers.UI.ViewModels.StatusBarViewModel"] = "WindowsContainers.UI.Views.Components.StatusBar",
             ["WindowsContainers.UI.ViewModels.RuntimeSettingsViewModel"] = "WindowsContainers.UI.Views.Components.Settings.RuntimeSettingsSection",
             ["WindowsContainers.UI.ViewModels.SessionSettingsViewModel"] = "WindowsContainers.UI.Views.Components.Settings.SessionSettingsSection",
-            ["WindowsContainers.UI.ViewModels.ContainerDefaultsSettingsViewModel"] = "WindowsContainers.UI.Views.Components.Settings.ContainerDefaultsSection",
             ["WindowsContainers.UI.ViewModels.AppearanceSettingsViewModel"] = "WindowsContainers.UI.Views.Components.Settings.AppearanceSettingsSection",
+            ["WindowsContainers.UI.ViewModels.PowerShellIntegrationSettingsViewModel"] = "WindowsContainers.UI.Views.Components.Settings.PowerShellIntegrationSection",
         };
 
     public Control? Build(object? param)

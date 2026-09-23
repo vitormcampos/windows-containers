@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WindowsContainers.UI.ViewModels"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             x:Class="WindowsContainers.UI.Views.Pages.ImagesPage"
+             x:DataType="vm:ImagesPageViewModel">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.image-header">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        </Style>
+        <Style Selector="TextBlock.image-value">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.usage-used">
+            <Setter Property="Foreground" Value="{DynamicResource StatusSuccessBrush}" />
+        </Style>
+        <Style Selector="TextBlock.usage-unused">
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="32">
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,24">
+            <StackPanel Spacing="4">
+                <TextBlock Text="Images" Classes="title" />
+                <TextBlock Text="Inspect, pull and remove images from the active wslc session."
+                           Classes="body"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <Button Command="{Binding PreviewPruneCommand}" Padding="12,8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ic:FluentIcon Icon="Broom" IconSize="Size16" />
+                        <TextBlock Text="Prune unused" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding RefreshCommand}" Padding="12,8">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ic:FluentIcon Icon="ArrowClockwise" IconSize="Size16" />
+                    <TextBlock Text="Refresh" />
+                </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                Padding="16"
+                Margin="0,0,0,20">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Text="{Binding ImageReference}"
+                         PlaceholderText="Image reference, for example ubuntu:24.04"
+                         MinHeight="36" />
+                <Button Grid.Column="1" Command="{Binding PullCommand}" Margin="12,0,0,0" Padding="16,8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ic:FluentIcon Icon="ArrowDownload" IconSize="Size16" />
+                        <TextBlock Text="Pull image" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2" IsVisible="{Binding IsPrunePreviewVisible}" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" Padding="16" Margin="0,0,0,20">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Prune preview" FontWeight="SemiBold" />
+                    <TextBlock Text="Only images confirmed as unused will be removed. The provider rechecks usage before deleting." Classes="caption" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <ItemsControl ItemsSource="{Binding PruneCandidates}">
+                        <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" Classes="caption" /></DataTemplate></ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelPruneCommand}" VerticalAlignment="Center" />
+                <Button Grid.Column="2" Content="Remove selected" Command="{Binding ConfirmPruneCommand}" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="3" RowDefinitions="Auto,*">
+            <Grid ColumnDefinitions="2*,1.4*,1*,1.2*,1*,Auto" ColumnSpacing="12" Margin="12,0,12,8">
+                <TextBlock Text="NAME" Classes="image-header" />
+                <TextBlock Grid.Column="1" Text="DIGEST" Classes="image-header" />
+                <TextBlock Grid.Column="2" Text="SIZE" Classes="image-header" />
+                <TextBlock Grid.Column="3" Text="CREATED" Classes="image-header" />
+                <TextBlock Grid.Column="4" Text="USAGE" Classes="image-header" />
+            </Grid>
+            <ScrollViewer Grid.Row="1">
+                <ItemsControl ItemsSource="{Binding Images}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ImageItemViewModel">
+                            <Border BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                                    BorderThickness="0,1,0,0"
+                                    Padding="12,14">
+                                <Grid ColumnDefinitions="2*,1.4*,1*,1.2*,1*,Auto" ColumnSpacing="12">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding Name}" Classes="image-value" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Id}" Classes="caption" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Digest}" Classes="image-value" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Size}" Classes="image-value" />
+                                    <TextBlock Grid.Column="3" Text="{Binding CreatedAt}" Classes="image-value" />
+                                    <TextBlock Grid.Column="4" Text="{Binding UsageLabel}" Classes="image-value" />
+                                    <Button Grid.Column="5"
+                                            Content="Remove"
+                                            Command="{Binding $parent[ItemsControl].DataContext.RemoveCommand}"
+                                            CommandParameter="{Binding}"
+                                            IsEnabled="{Binding CanRemove}"
+                                            Padding="10,6" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+
+        <Grid Grid.Row="4" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Classes="caption" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" Classes="caption" Foreground="{DynamicResource SystemControlErrorTextBrush}" TextWrapping="Wrap" MaxWidth="420" />
+        </Grid>
+    </Grid>
+</UserControl>

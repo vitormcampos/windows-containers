@@ -39,9 +39,10 @@
     </Window.Styles>
 
     <Grid RowDefinitions="*,Auto">
-        <Grid ColumnDefinitions="240,*">
+        <Grid ColumnDefinitions="Auto,*">
             <!-- Sidebar (static, no navigation yet) -->
             <Border Grid.Column="0"
+                    Width="{Binding SidebarWidth}"
                     Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
                     BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
                     BorderThickness="0,0,1,0">
@@ -94,6 +95,7 @@
 
         <!-- Status bar -->
         <Border Grid.Row="1"
+                IsVisible="{Binding ShowStatusBar}"
                 Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
                 BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
                 BorderThickness="0,1,0,0"

@@ -7,17 +7,21 @@ public class MainViewModel : ViewModelBase
     private int _selectedNavigationIndex;
     private ViewModelBase _currentPage;
 
-    public MainViewModel(IEnvironmentState environment)
+    public MainViewModel(IEnvironmentState environment, SettingsViewModel settings, IProviderService provider)
     {
         Dashboard = new DashboardViewModel(environment);
-        Settings = new SettingsViewModel();
+        Images = new ImagesPageViewModel(provider);
+        Settings = settings;
+        Provider = provider;
         StatusBar = new StatusBarViewModel(environment);
         _currentPage = Dashboard;
     }
 
     public DashboardViewModel Dashboard { get; }
+    public ImagesPageViewModel Images { get; }
     public SettingsViewModel Settings { get; }
     public StatusBarViewModel StatusBar { get; }
+    public IProviderService Provider { get; }
 
     public int SelectedNavigationIndex
     {
@@ -27,7 +31,12 @@ public class MainViewModel : ViewModelBase
             if (!SetProperty(ref _selectedNavigationIndex, value))
                 return;
 
-            CurrentPage = value == 3 ? Settings : Dashboard;
+            CurrentPage = value switch
+            {
+                2 => Images,
+                3 => Settings,
+                _ => Dashboard,
+            };
         }
     }
 
