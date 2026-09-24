@@ -29,8 +29,21 @@ public sealed class WslProviderService : IProviderService
 
     public async Task<IReadOnlyList<ContainerInfo>> GetContainersAsync(CancellationToken cancellationToken = default)
     {
-        var output = await ExecuteAsync(["list", "--all", "--format", "json"], cancellationToken);
-        return ParseLines(output, ParseContainer).ToList();
+        var output = await ExecuteAsync(["list", "--all", "--no-trunc", "--format", "json"], cancellationToken);
+        var containers = ParseLines(output, ParseContainer).ToList();
+
+        for (var index = 0; index < containers.Count; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var details = await TryGetContainerDetailsAsync(containers[index].Id, cancellationToken);
+            containers[index] = containers[index] with
+            {
+                Ports = details.Ports,
+                Volumes = details.Volumes,
+            };
+        }
+
+        return containers;
     }
 
     public Task StartAsync(string containerId, CancellationToken cancellationToken = default) =>
@@ -38,6 +51,9 @@ public sealed class WslProviderService : IProviderService
 
     public Task StopAsync(string containerId, CancellationToken cancellationToken = default) =>
         ExecuteCommandAsync(["stop", containerId], cancellationToken);
+
+    public Task RestartAsync(string containerId, CancellationToken cancellationToken = default) =>
+        ExecuteCommandAsync(["restart", containerId], cancellationToken);
 
     public Task RemoveContainerAsync(string containerId, CancellationToken cancellationToken = default) =>
         ExecuteCommandAsync(["remove", containerId], cancellationToken);
@@ -175,7 +191,80 @@ public sealed class WslProviderService : IProviderService
             GetString(element, "Names"),
             GetString(element, "Image"),
             state,
+            [],
+            [],
             ContainerBackend.Wslc);
+    }
+
+    private async Task<(IReadOnlyList<PortMapping> Ports, IReadOnlyList<VolumeMount> Volumes)> TryGetContainerDetailsAsync(
+        string containerId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var output = await ExecuteAsync(["inspect", "--type", "container", "--format", "json", containerId], cancellationToken);
+            using var document = JsonDocument.Parse(output);
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() == 0)
+                return ([], []);
+
+            var container = root[0];
+            return (ParsePorts(container), ParseVolumes(container));
+        }
+        catch (InvalidOperationException)
+        {
+            // Listing remains useful when an individual inspect cannot be completed.
+            return ([], []);
+        }
+        catch (JsonException)
+        {
+            return ([], []);
+        }
+    }
+
+    private static IReadOnlyList<PortMapping> ParsePorts(JsonElement container)
+    {
+        if (!container.TryGetProperty("Ports", out var portsElement) || portsElement.ValueKind != JsonValueKind.Object)
+            return [];
+
+        var ports = new List<PortMapping>();
+        foreach (var property in portsElement.EnumerateObject())
+        {
+            var separator = property.Name.IndexOf('/', StringComparison.Ordinal);
+            var containerPort = separator >= 0 ? property.Name[..separator] : property.Name;
+            var protocol = separator >= 0 ? property.Name[(separator + 1)..] : "tcp";
+            if (property.Value.ValueKind != JsonValueKind.Array)
+                continue;
+
+            foreach (var binding in property.Value.EnumerateArray())
+            {
+                ports.Add(new PortMapping(
+                    GetString(binding, "HostIp"),
+                    GetString(binding, "HostPort"),
+                    containerPort,
+                    protocol));
+            }
+        }
+
+        return ports;
+    }
+
+    private static IReadOnlyList<VolumeMount> ParseVolumes(JsonElement container)
+    {
+        if (!container.TryGetProperty("Mounts", out var mountsElement) || mountsElement.ValueKind != JsonValueKind.Array)
+            return [];
+
+        var volumes = new List<VolumeMount>();
+        foreach (var mount in mountsElement.EnumerateArray())
+        {
+            var mode = mount.TryGetProperty("RW", out var readWrite) && readWrite.ValueKind == JsonValueKind.False ? "ro" : "rw";
+            volumes.Add(new VolumeMount(
+                GetString(mount, "Source"),
+                GetString(mount, "Destination"),
+                mode));
+        }
+
+        return volumes;
     }
 
     private static ImageInfo ParseImage(JsonElement element, IReadOnlySet<string> usedImages)

@@ -10,5 +10,6 @@ public interface IContainerService
     Task<IReadOnlyList<ContainerInfo>> GetContainersAsync(CancellationToken cancellationToken = default);
     Task StartAsync(string containerId, CancellationToken cancellationToken = default);
     Task StopAsync(string containerId, CancellationToken cancellationToken = default);
+    Task RestartAsync(string containerId, CancellationToken cancellationToken = default);
     Task RemoveContainerAsync(string containerId, CancellationToken cancellationToken = default);
 }

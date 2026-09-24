@@ -16,6 +16,7 @@ public class MainViewModel : ViewModelBase
     public MainViewModel(IEnvironmentState environment, SettingsViewModel settings, IThemeService themeService, IProviderService provider)
     {
         Dashboard = new DashboardViewModel(environment);
+        Containers = new ContainersPageViewModel(provider);
         Images = new ImagesPageViewModel(provider);
         Settings = settings;
         _themeService = themeService;
@@ -27,6 +28,7 @@ public class MainViewModel : ViewModelBase
     }
 
     public DashboardViewModel Dashboard { get; }
+    public ContainersPageViewModel Containers { get; }
     public ImagesPageViewModel Images { get; }
     public SettingsViewModel Settings { get; }
     public StatusBarViewModel StatusBar { get; }
@@ -41,6 +43,7 @@ public class MainViewModel : ViewModelBase
 
             CurrentPage = value switch
             {
+                1 => Containers,
                 2 => Images,
                 3 => Settings,
                 _ => Dashboard,

@@ -78,12 +78,14 @@
         </Border>
 
         <Grid Grid.Row="3" RowDefinitions="Auto,*">
-            <Grid ColumnDefinitions="2*,1.4*,1*,1.2*,1*,Auto" ColumnSpacing="12" Margin="12,0,12,8">
-                <TextBlock Text="NAME" Classes="image-header" />
-                <TextBlock Grid.Column="1" Text="DIGEST" Classes="image-header" />
-                <TextBlock Grid.Column="2" Text="SIZE" Classes="image-header" />
-                <TextBlock Grid.Column="3" Text="CREATED" Classes="image-header" />
-                <TextBlock Grid.Column="4" Text="USAGE" Classes="image-header" />
+            <Grid ColumnDefinitions="1.8*,1.2*,1.4*,1*,1.2*,1*,90" ColumnSpacing="12" Margin="12,0,12,8">
+                <TextBlock Text="Name" Classes="image-header" />
+                <TextBlock Grid.Column="1" Text="ID" Classes="image-header" />
+                <TextBlock Grid.Column="2" Text="Digest" Classes="image-header" />
+                <TextBlock Grid.Column="3" Text="Size" Classes="image-header" />
+                <TextBlock Grid.Column="4" Text="Created" Classes="image-header" />
+                <TextBlock Grid.Column="5" Text="Usage" Classes="image-header" />
+                <TextBlock Grid.Column="6" Text="Actions" Classes="image-header" />
             </Grid>
             <ScrollViewer Grid.Row="1">
                 <ItemsControl ItemsSource="{Binding Images}">
@@ -92,16 +94,14 @@
                             <Border BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
                                     BorderThickness="0,1,0,0"
                                     Padding="12,14">
-                                <Grid ColumnDefinitions="2*,1.4*,1*,1.2*,1*,Auto" ColumnSpacing="12">
-                                    <StackPanel Spacing="2">
-                                        <TextBlock Text="{Binding Name}" Classes="image-value" FontWeight="SemiBold" />
-                                        <TextBlock Text="{Binding Id}" Classes="caption" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                                    </StackPanel>
-                                    <TextBlock Grid.Column="1" Text="{Binding Digest}" Classes="image-value" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Grid.Column="2" Text="{Binding Size}" Classes="image-value" />
-                                    <TextBlock Grid.Column="3" Text="{Binding CreatedAt}" Classes="image-value" />
-                                    <TextBlock Grid.Column="4" Text="{Binding UsageLabel}" Classes="image-value" />
-                                    <Button Grid.Column="5"
+                                <Grid ColumnDefinitions="1.8*,1.2*,1.4*,1*,1.2*,1*,90" ColumnSpacing="12">
+                                    <TextBlock Text="{Binding Name}" Classes="image-value" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Id}" Classes="image-value" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Digest}" Classes="image-value" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Size}" Classes="image-value" />
+                                    <TextBlock Grid.Column="4" Text="{Binding CreatedAt}" Classes="image-value" />
+                                    <TextBlock Grid.Column="5" Text="{Binding UsageLabel}" Classes="image-value" />
+                                    <Button Grid.Column="6"
                                             Content="Remove"
                                             Command="{Binding $parent[ItemsControl].DataContext.RemoveCommand}"
                                             CommandParameter="{Binding}"

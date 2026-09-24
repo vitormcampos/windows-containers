@@ -19,6 +19,7 @@ public class ViewLocator : IDataTemplate
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["WindowsContainers.UI.ViewModels.DashboardViewModel"] = "WindowsContainers.UI.Views.Pages.DashboardPage",
+            ["WindowsContainers.UI.ViewModels.ContainersPageViewModel"] = "WindowsContainers.UI.Views.Pages.ContainersPage",
             ["WindowsContainers.UI.ViewModels.SettingsViewModel"] = "WindowsContainers.UI.Views.Pages.SettingsPage",
             ["WindowsContainers.UI.ViewModels.ImagesPageViewModel"] = "WindowsContainers.UI.Views.Pages.ImagesPage",
             ["WindowsContainers.UI.ViewModels.StatusBarViewModel"] = "WindowsContainers.UI.Views.Components.StatusBar",

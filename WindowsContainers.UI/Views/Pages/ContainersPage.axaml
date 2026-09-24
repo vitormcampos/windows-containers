@@ -1,0 +1,144 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WindowsContainers.UI.ViewModels"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             x:Class="WindowsContainers.UI.Views.Pages.ContainersPage"
+             x:DataType="vm:ContainersPageViewModel">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.container-header">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        </Style>
+        <Style Selector="TextBlock.container-value">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.container-state">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource StatusSuccessBrush}" />
+        </Style>
+        <Style Selector="TextBlock.container-secondary">
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="32">
+        <Grid RowDefinitions="Auto,Auto,*,Auto">
+            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,24">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Containers" Classes="title" />
+                    <TextBlock Text="Start, stop, restart and remove containers from the active wslc session."
+                               Classes="body"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                </StackPanel>
+                <Button Grid.Column="1" Command="{Binding RefreshCommand}" Padding="12,8" IsEnabled="{Binding !IsBusy}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ic:FluentIcon Icon="ArrowClockwise" IconSize="Size16" />
+                        <TextBlock Text="Refresh" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <Border Grid.Row="1"
+                    Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    Padding="16"
+                    Margin="0,0,0,20">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <ProgressBar IsIndeterminate="True" Width="120" Height="4" IsVisible="{Binding IsLoading}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding StatusMessage}"
+                               Classes="caption"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2" RowDefinitions="Auto,*">
+                <Grid ColumnDefinitions="1.25*,1.1*,1.2*,1*,1.7*,280" ColumnSpacing="12" Margin="12,0,12,8">
+                    <TextBlock Text="Name" Classes="container-header" />
+                    <TextBlock Grid.Column="1" Text="ID" Classes="container-header" />
+                    <TextBlock Grid.Column="2" Text="Image" Classes="container-header" />
+                    <TextBlock Grid.Column="3" Text="State" Classes="container-header" />
+                    <TextBlock Grid.Column="4" Text="Ports" Classes="container-header" />
+                    <TextBlock Grid.Column="5" Text="Actions" Classes="container-header" />
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <ScrollViewer IsVisible="{Binding !IsEmpty}">
+                        <ItemsControl ItemsSource="{Binding Containers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ContainerItemViewModel">
+                                    <Border BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                                            BorderThickness="0,1,0,0"
+                                            Padding="12,14">
+                                        <Grid ColumnDefinitions="1.25*,1.1*,1.2*,1*,1.7*,280" ColumnSpacing="12">
+                                            <TextBlock Text="{Binding Name}" Classes="container-value" FontWeight="SemiBold" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Id}" Classes="container-value" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Image}" Classes="container-value" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="3" Text="{Binding StateLabel}" Classes="container-value container-state" />
+                                            <TextBlock Grid.Column="4" Text="{Binding Ports}" Classes="container-value container-secondary" />
+                                            <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="6">
+                                                <Button Content="Start" Command="{Binding $parent[ItemsControl].DataContext.StartCommand}" CommandParameter="{Binding}" IsEnabled="{Binding CanStart}" Padding="10,6" />
+                                                <Button Content="Stop" Command="{Binding $parent[ItemsControl].DataContext.StopCommand}" CommandParameter="{Binding}" IsEnabled="{Binding CanStop}" Padding="10,6" />
+                                                <Button Content="Restart" Command="{Binding $parent[ItemsControl].DataContext.RestartCommand}" CommandParameter="{Binding}" IsEnabled="{Binding CanRestart}" Padding="10,6" />
+                                                <Button Content="Remove" Command="{Binding $parent[ItemsControl].DataContext.RemoveCommand}" CommandParameter="{Binding}" IsEnabled="{Binding CanRemove}" Padding="10,6" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <StackPanel IsVisible="{Binding IsEmpty}" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="No containers found." Classes="subtitle" HorizontalAlignment="Center" />
+                        <TextBlock Text="Create a container or refresh the active session to see it here."
+                                   Classes="body"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   HorizontalAlignment="Center" />
+                        <Button Content="Refresh" Command="{Binding RefreshCommand}" HorizontalAlignment="Center" Padding="14,8" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Classes="caption"
+                           Foreground="{DynamicResource SystemControlErrorTextBrush}"
+                           TextWrapping="Wrap"
+                           MaxWidth="520" />
+                <TextBlock Grid.Column="1" Text="{Binding Containers.Count, StringFormat='{}{0} containers'}" Classes="caption" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </Grid>
+        </Grid>
+
+        <Border IsVisible="{Binding IsRemoveConfirmationVisible}"
+                Background="#99000000"
+                ZIndex="10"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                    BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                    BorderThickness="1"
+                    Padding="24"
+                    MaxWidth="440"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Remove container?" Classes="subtitle" />
+                    <TextBlock Text="{Binding PendingRemoval.Name, StringFormat='Are you sure you want to remove {0}?'}"
+                               Classes="body"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding PendingRemoval.Image, StringFormat='Image: {0}'}"
+                               Classes="caption"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                        <Button Content="Cancel" Command="{Binding CancelRemoveCommand}" Padding="14,8" />
+                        <Button Content="Remove" Command="{Binding ConfirmRemoveCommand}" Padding="14,8" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>
